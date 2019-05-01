@@ -38,7 +38,7 @@ public class Main {
                 .withIdentity("dataCenterJobTrigger", "group1")
                 .withSchedule(
                         SimpleScheduleBuilder.simpleSchedule()
-                                .withIntervalInSeconds(5).repeatForever())
+                                .withIntervalInSeconds(10).repeatForever())
                 .build();
 
         try {

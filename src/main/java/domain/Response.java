@@ -39,4 +39,14 @@ public class Response {
     public void setPvGeneration(double pvGeneration) {
         this.pvGeneration = pvGeneration;
     }
+
+    @Override
+    public String toString() {
+        return "Response{" +
+                "timestamp=" + timestamp +
+                ", responseSize=" + responseSize +
+                ", energyConsumed=" + energyConsumed +
+                ", pvGeneration=" + pvGeneration +
+                '}';
+    }
 }

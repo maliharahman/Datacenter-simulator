@@ -15,4 +15,12 @@ public class Utils {
         cal.set(Calendar.MILLISECOND, 0);
         return cal.getTime();
     }
+
+    public static int calculateTickCount(long load) {
+        if (load >= 0 &&  load < 5000) {
+            return 5;
+        } else {
+            return 10;
+        }
+    }
 }

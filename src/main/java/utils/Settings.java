@@ -1,10 +1,6 @@
 package utils;
 
 public class Settings {
-    public static int setValue()
-    {
-        int count=0;
-        return count;
-    }
-    public static final long SERVER_MAX_LOAD = 8000;
+    public static final long SERVER_MAX_LOAD = 3000;
+    public static final double COOL_DOWN_COEFFICIENT = 0.5;
 }

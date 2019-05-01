@@ -6,57 +6,56 @@ import domain.Server;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utils.Settings;
+import utils.Utils;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
-import java.util.*;
-
-public class DataCenterJobExecutor extends TimerTask implements Job
+public class DataCenterJobExecutor implements Job
 {
-    private double maxServerCap=Settings.SERVER_MAX_LOAD;
-    private double s1=maxServerCap,s2,s3,s4;
+    private static Logger log = LoggerFactory.getLogger(DataCenterJobExecutor.class);
 
-    Response response = ResponseDataHandler.getResponseDataHandlerInstance().getResponseList().get(0);
-    double size=response.getResponseSize();
-
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException
-    {
-        DataCenter dataCenter1 = DataCentersHandler.getInstance().getAvailableDataCenters().get(0);
-        DataCenter dataCenter2 = DataCentersHandler.getInstance().getAvailableDataCenters().get(1);
-
-        /*
-         * calculation
-         * */
-
-        String Dc1Server1 = dataCenter1.getServerList().get(0).getId();
-        String Dc1Server2 = dataCenter1.getServerList().get(1).getId();
-        String Dc2Server1 = dataCenter2.getServerList().get(0).getId();
-        String Dc2Server2 = dataCenter2.getServerList().get(1).getId();
-
-        if (s1 > size)
+    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+        log.info("Tick started");
+        log.info("");
+        log.info("server status:-");
+        log.info("-------------------------------------------");
+        for (DataCenter dataCenter : DataCentersHandler.getInstance().getAvailableDataCenters())
         {
-            System.out.println(response.getTimestamp() + " { DataCenter ID: " + dataCenter1.getId() +
-                    " , Server ID: " + Dc1Server1 + " , Bytes: " + size + " }");
+            dataCenter.updateServers();
+            for (Server server: dataCenter.getServerList()) {
+                log.info(server.toString());
+            }
+        }
+        log.info("-------------------------------------------");
 
-            Timer timer = new Timer();
-            TimerTask task = new DataCenterJobExecutor();
-            timer.schedule(task,1000,3000);
+        Response response = ResponseDataHandler.getResponseDataHandlerInstance().getResponseList().get(0);
+        int tickCount = Utils.calculateTickCount((long) response.getResponseSize());
+        boolean isServed = false;
+
+        for (DataCenter dataCenter : DataCentersHandler.getInstance().getAvailableDataCenters()) {
+            if (isServed) {
+                break;
+            }
+
+            for (Server server : dataCenter.getServerList()) {
+                if (server.isBusy()) {
+                    log.info("Redirected to another server.");
+                    continue;
+                } else {
+                    server.setBusy(true);
+                    server.setBusyTickCount(tickCount);
+                    log.info(server.toString() + " served response: " + response.toString());
+                    ResponseDataHandler.getResponseDataHandlerInstance().getResponseList().remove(0);
+                    isServed = true;
+                    break;
+                }
+            }
+            log.info("Redirected to another Data-center");
         }
 
-        //update server1 after 3 seconds
-
-        /*else
-            System.out.println(response.getTimestamp()  + " { DataCenter ID: " + dataCenter2.getId() +
-                    " , Server ID: " + Dc1Server2 + " , Bytes: " + size + " }");*/
-
-        ResponseDataHandler.getResponseDataHandlerInstance().getResponseList().remove(0);
-    }
-
-    public void run()
-    {
-        s1=s1-size;
-        System.out.println("updated server capacity : " + s1 );
+        log.info("Tick ended");
+        log.info("\n");
+        log.info("\n");
     }
 }

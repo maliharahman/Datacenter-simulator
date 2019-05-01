@@ -19,6 +19,12 @@ public class DataCenter {
         serverList.add(server2);
     }
 
+    public void updateServers() {
+        for (Server server: serverList) {
+            server.updateStatus();
+        }
+    }
+
     public String getId() {
         return id;
     }
